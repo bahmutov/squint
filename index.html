@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <link href="http://cdnjs.cloudflare.com/ajax/libs/prism/0.0.1/prism.css" rel="stylesheet" />
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/prism/0.0.1/prism.js"></script>
+    <script>
+      Prism.languages.squint = {
+        indent: /(\s+)/ig
+      };
+
+      var emptyLine = '\n                                  \n';
+      var emptyLines = [];
+
+      var squinters = {
+        all: function () {}, // let all tokens pass
+        emptyLines: function (env) {
+          if (env.type === 'indent') {
+            if (env.content === '\n\n') {
+              env.content = emptyLine;
+            } else {
+              env.classes = [];
+            }
+          }
+        },
+        leading: function (env) {
+          if (env.type === 'indent') {
+            if (env.content === ' ') {
+              env.classes = [];
+            }
+          }
+        }
+      }
+
+      function addSquinter(squinter) {
+        var squinterFn = squinters[squinter];
+        if (typeof squinterFn === 'function') {
+          Prism.hooks.all.wrap[5] = squinterFn;
+          // Prism.hooks.add('wrap', squinterFn);
+        }
+      }
+      var squintAt = 'all';
+      addSquinter('all');
+    </script>
+    <style>
+      .token.indent {
+        background-color: red;
+      }
+    </style>
+  </head>
+  <body>
+    <select id="selectSquint" onchange="changeSquintAt()">
+      <option value="all">all white space</option>
+      <option value="emptyLines">empty lines</option>
+      <option value="leading">leading space</option>
+    </select>
+    <pre><code class="language-squint">
+// comment line
+
+// after empty line
+function foo() {
+  return a + b;
+}
+console.log(foo(2, 3));
+
+// more lines
+function bar()   {
+  // maybe more
+     // indent here
+       return false
+      }
+</code></pre>
+
+  <script>
+
+    function changeSquintAt(ev) {
+      if (!ev) { return; }
+
+      if (squintAt === 'emptyLines') {
+        var arrs = document.querySelectorAll('span');
+        var spans = Array.prototype.slice.call(arrs, 0);
+        spans.forEach(function (span) {
+          var t = span.childNodes[0].nodeValue;
+          if (t === emptyLine) {
+            span.childNodes[0].nodeValue = '\n\n';
+          }
+        });
+      }
+
+      squintAt = ev.target.value;
+      console.log('squinting at', squintAt);
+      addSquinter(squintAt);
+      Prism.highlightAll();
+    }
+    var select = document.getElementById('selectSquint');
+    select.addEventListener('change', changeSquintAt);
+  </script>
+  </body>
+</html>
